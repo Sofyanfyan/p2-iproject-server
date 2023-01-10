@@ -55,7 +55,9 @@ module.exports = (sequelize, DataTypes) => {
             msg:'Password is required'
          }
       }
-    }
+    },
+
+    isSubs: DataTypes.BOOLEAN
   }, {
     sequelize,
     modelName: 'User',
@@ -63,7 +65,7 @@ module.exports = (sequelize, DataTypes) => {
   User.beforeCreate(instance => {
    
       instance.password = hashPassword(instance.password)
-
+      instance.isSubs = false
   })
   return User;
 };

@@ -257,6 +257,7 @@ class Controller {
                username: name,
                email,
                password: '123123',
+               isSubs:false
             },
             hooks: false
          })
@@ -314,6 +315,24 @@ class Controller {
 
          const mitransToken = await snap.createTransaction(parameter)
          res.status(201).json(mitransToken)
+      } catch (error) {
+         next(error)
+      }
+   }
+
+
+   static async subs(req, res, next){
+
+      try {
+         
+         await User.update({isSubs: true}, {
+            where: {
+               id: req.user.id
+            }
+         })
+
+         res.status(200).json({ message: 'SUBSCRIPTION SUCCESS' })
+
       } catch (error) {
          next(error)
       }
