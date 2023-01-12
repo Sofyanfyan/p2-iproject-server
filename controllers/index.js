@@ -17,6 +17,10 @@ const CLIENT_ID = process.env.CLIENT_ID
 
 const client = new OAuth2Client(CLIENT_ID);
 
+const EMAIL_PASSWORD = process.env.EMAIL_PASSWORD
+
+const nodemailer = require("nodemailer");
+
 class Controller {
 
    static async register(req, res, next) {
@@ -35,11 +39,33 @@ class Controller {
             password
          })
 
+         const transporter = nodemailer.createTransport({
+            host: "smtp-mail.outlook.com",
+            auth: {
+              user: 'cyborggames@outlook.co.id', // generated ethereal user
+              pass: EMAIL_PASSWORD, // generated ethereal password
+            },
+         });
+
+         
+
+         
+
          res.status(201).json({
             id: user.id,
             username: user.username,
             email: user.email
          })
+
+         let info = await transporter.sendMail({
+            from: 'cyborggames@outlook.co.id', // sender address
+            to: email, // list of receivers
+            subject: "Welcome To Cyborg", // Subject line
+            text: "Thanks to visit my Website ^_^ `suzyan", // plain text body
+         });
+
+         console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
+         console.log("Message sent: %s", info.messageId);
 
       } catch (error) {
          next(error)
@@ -94,7 +120,10 @@ class Controller {
          const access_token = signToken(payload)
 
          res.status(200).json({
-            access_token
+            access_token,
+            username: user.username,
+            isSubs: user.isSubs,
+            createdAt: user.createdAt
          })
 
       } catch (error) {
@@ -124,6 +153,12 @@ class Controller {
             baseUrl = `https://www.freetogame.com/api/games?platform=${platform}&category=${category}`
          } else if (!category && sort && platform) {
             baseUrl = `https://www.freetogame.com/api/games?platform=${platform}&sort-by=${sort}`
+         } else if (sort && !category && !platform) {
+            baseUrl = `https://www.freetogame.com/api/games?sort-by=${sort}`
+         } else if (!sort && category && !platform){
+            baseUrl = `https://www.freetogame.com/api/games?category=${category}`
+         } else if (!sort && !category && platform) {
+            baseUrl = `https://www.freetogame.com/api/games?platform=${platform}`
          }
 
          const {
@@ -245,6 +280,14 @@ class Controller {
          const payload = ticket.getPayload();
          console.log(payload, '<<<<<<< INI PAYLOAD');
 
+         const transporter = nodemailer.createTransport({
+            host: "smtp-mail.outlook.com",
+            auth: {
+              user: 'cyborggames@outlook.co.id', // generated ethereal user
+              pass: EMAIL_PASSWORD, // generated ethereal password
+            },
+         });
+
          const {
             email,
             name
@@ -262,21 +305,32 @@ class Controller {
             hooks: false
          })
 
-         const access_token = encodeToken({
+         const access_token = signToken({
             id: payload.id
          })
-         // console.log(user);
+         
 
          res.status(200).json({
 
             message: `User ${user.email} found`,
-            access_token: encodeToken({
+            access_token: signToken({
                id: user.id
             }),
-            user: {
-               name: user.username
-            }
+            username: user.username,
+            isSubs: user.isSubs,
+            createdAt: user.createdAt
          })
+
+
+         let info = await transporter.sendMail({
+            from: 'cyborggames@outlook.co.id', // sender address
+            to: email, // list of receivers
+            subject: "Welcome To Cyborg", // Subject line
+            text: "Thanks to visit my Website ^_^ `suzyan", // plain text body
+         });
+
+         console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
+         console.log("Message sent: %s", info.messageId);
 
       } catch (error) {
          next(error)
@@ -337,6 +391,30 @@ class Controller {
          next(error)
       }
    }
+
+   static async statusPatch(req, res, next){
+
+      try {
+         
+         const {id} = req.params
+         
+         await Favorite.update({status: 'Completed'},
+            {
+            where:{
+               id
+            }
+         }
+         )
+
+         res.status(200).json({
+            message: `SUCCESS UPDATE STATUS WITH ID = ${id}`
+         })
+      } catch (error) {
+         next(error);
+      }
+   }
+
+   
 }
 
 

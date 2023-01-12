@@ -24,16 +24,26 @@ app.use((err, req, res, next) => {
       code = 400
       message.message = 'Email has been registered'
    } else if (err.name === 'Invalid email or password'){
+      code = 401
       message.message = err.name
    } else if (err.name === 'Email is required' || err.name === 'Password is required'){
+      code = 400
       message.message = err.name
-   } else if (err.name === 'Invalid token'){
-      message.message = err.name
+   } else if (err.name === 'Invalid token' || err.name === 'JsonWebTokenError'){
+      code = 401
+      message.message = 'Invalid token'
    } else if (err === 'Game not found'){
+      code = 404
       message.message = 'Game not found'
-   } 
+   } else if (err.name === 'Forbidden'){
+      code = 403
+      message.message = err.name
+   } else if (err.name === 'Id Favorite not found'){
+      code = 404
+      message.message = err.name
+   }
 
-   console.log(err.name);
+   console.log(err);
    res.status(code).json(message)
 })
 
